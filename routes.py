@@ -1,7 +1,7 @@
-from app import app
+from becca-runs.app import app
 from flask import jsonify 
 
-@app.rout("/hello", method='GET')
+@app.route("/hello", method='GET')
 def hello():
     return "Hello, World!"
 

@@ -1,4 +1,4 @@
-from app import db, ma
+from becca-runs.app import db, ma
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
