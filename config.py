@@ -1,4 +1,3 @@
-
 FITBIT Application
 
 OAuth 2.0 Client ID: 22C7TR
