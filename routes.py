@@ -1,4 +1,4 @@
-from becca-runs.app import app
+from .app import app
 from flask import jsonify 
 
 @app.route("/hello", method='GET')
