@@ -1,6 +1,7 @@
 #pip freeze > requirements.txt
 
 from requests_oauthlib import OAuth2Session
+import requests
 from flask import Flask, request, redirect, session, url_for
 from flask.json import jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -9,6 +10,9 @@ from marshmallow_sqlalchemy import ModelSchema
 from flask_cors import CORS
 import os
 from .config import *
+from datetime import datetime
+
+calendar = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"]
 
 
 app = Flask(__name__, instance_relative_config=True)
@@ -23,7 +27,7 @@ app.secret_key = app.config['SECRET_KEY']
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-scope = ["activity", "heartrate", "location", "nutrition","sleep","social","weight"]
+scope = app.config["SCOPE"]
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -97,8 +101,53 @@ def profile():
     """
     print("token: ", session['oauth_token'])
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session['oauth_token'])
-    print("fitbit request: ", fitbit)
-    return {"authenticated": "yes!"}
+    profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
+    steps_url = 'https://api.fitbit.com/1/user/-/activities/steps/date/today/7d.json'
+    activities_url = 'https://api.fitbit.com/1/user/-/activities/date/today/1m.json'
+    
+    profile = fitbit.get(profile_url)
+    steps = fitbit.get(steps_url)
+    activities = fitbit.get(activities_url)
+
+    print(activities.json())
+
+
+    badges = badge_summary(profile.json()["user"])
+    [steps, total_steps] = step_summary(steps.json())
+
+    summary = {
+        "Name": profile.json()["user"]["fullName"],
+        "Age": profile.json()["user"]["age"],
+        "Badges": badges,
+        "Total Steps This Week": total_steps,
+        "Steps by Day": steps,
+        "activities": activities.json()
+
+    }
+    return summary
+
+def badge_summary(user_data):
+    badges = []
+    for badge in user_data["topBadges"]:
+        badges.append({
+            "Date": badge["dateTime"],
+            "Achievement": badge["earnedMessage"]
+            })
+    return badges
+
+def step_summary(activity_data):
+    steps = []
+    total_steps = 0
+    for day in activity_data['activities-steps']:
+        steps.append(
+            {
+                "day": calendar[datetime.strptime(day['dateTime'], "%Y-%m-%d").weekday()],
+                "date": day['dateTime'], 
+                "steps": int(day['value'])
+            }
+        )
+        total_steps += int(day['value'])
+    return steps, total_steps
 
 
 if __name__ == '__main__':
