@@ -14,7 +14,6 @@ from datetime import datetime
 
 calendar = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"]
 
-
 app = Flask(__name__, instance_relative_config=True)
 
 app.config.from_object(DevelopmentConfig())
@@ -26,6 +25,7 @@ app.secret_key = app.config['SECRET_KEY']
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+CORS(app)
 
 scope = app.config["SCOPE"]
 
@@ -45,8 +45,11 @@ def users():
     return "hello"
 
 @app.route("/")
+def homepage():
+    return "Becca Runs"
+
 @app.route("/login")
-def demo():
+def login():
     """Step 1: User Authorization.
     Redirect the user/resource owner to the OAuth provider (i.e. Github)
     using an URL with a few key OAuth parameters.
@@ -63,26 +66,26 @@ def demo():
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
 
+    print("STATE:", state)
+
     return redirect(authorization_url)
 
-
-    #https://www.fitbit.com/oauth2/authorize?
-    #response_type=code
-    #&client_id=22942C
-    #&redirect_uri=https%3A%2F%2Fexample.com%2Ffitbit_auth
-    #&scope=activity%20nutrition%20heartrate%20location%20nutrition%20profile%20settings%20sleep%20social%20weight
-
-@app.route('/callback', methods=["GET"])
-def callback():
+@app.route('/oauth_callback', methods=["GET"])
+def oauth_callback():
     """ Step 3: Retrieving an access token.
     The user has been redirected back from the provider to your registered
     callback URL. With this redirection comes an authorization code included
     in the redirect URL. We will use that to obtain an access token.
     """
+
     fitbit = OAuth2Session(app.config['CLIENT_ID'],
         redirect_uri=app.config['CALLBACK_URL'],  
         state=session['oauth_state'],
         )
+
+    print("fitbit", fitbit)
+    print("request.url = ", request.url)
+
     token = fitbit.fetch_token(app.config['TOKEN_URL'], 
         client_secret=app.config['CLIENT_SECRET'],
         authorization_response=request.url,
@@ -92,11 +95,12 @@ def callback():
     # in /profile.
     session['oauth_token'] = token
 
+    return redirect("http://localhost:3000/about")
+    #return redirect(url_for('.about'))
 
-    return redirect(url_for('.profile'))
 
-@app.route("/profile", methods=["GET"])
-def profile():
+@app.route("/about", methods=["GET"])
+def about():
     """Fetching a protected resource using an OAuth 2 token.
     """
     print("token: ", session['oauth_token'])
@@ -124,6 +128,8 @@ def profile():
         "activities": activities.json()
 
     }
+
+    #requests.get("http://localhost:3000/about")
     return summary
 
 def badge_summary(user_data):
