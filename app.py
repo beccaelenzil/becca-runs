@@ -7,14 +7,15 @@ from flask.json import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from marshmallow_sqlalchemy import ModelSchema
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 import os
 from .config import *
 from datetime import datetime
 
+calendar = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"]
+
+
 app = Flask(__name__, instance_relative_config=True)
-cors = CORS(app, support_credentials=True)
-app.config['CORS_HEADERS'] = 'Content-Type'
 
 app.config.from_object(DevelopmentConfig())
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -43,8 +44,8 @@ class UserSchema(ModelSchema):
 def users():
     return "hello"
 
+@app.route("/")
 @app.route("/login")
-@cross_origin(supports_credentials=True)
 def demo():
     """Step 1: User Authorization.
     Redirect the user/resource owner to the OAuth provider (i.e. Github)
@@ -62,10 +63,16 @@ def demo():
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
 
-    return redirect("authorization_url")
+    return redirect(authorization_url)
+
+
+    #https://www.fitbit.com/oauth2/authorize?
+    #response_type=code
+    #&client_id=22942C
+    #&redirect_uri=https%3A%2F%2Fexample.com%2Ffitbit_auth
+    #&scope=activity%20nutrition%20heartrate%20location%20nutrition%20profile%20settings%20sleep%20social%20weight
 
 @app.route('/callback', methods=["GET"])
-@cross_origin(supports_credentials=True)
 def callback():
     """ Step 3: Retrieving an access token.
     The user has been redirected back from the provider to your registered
@@ -85,11 +92,11 @@ def callback():
     # in /profile.
     session['oauth_token'] = token
 
-    return redirect(url_for('about'))
 
-@app.route("/about", methods=["GET"])
-@cross_origin(supports_credentials=True)
-def about():
+    return redirect(url_for('.profile'))
+
+@app.route("/profile", methods=["GET"])
+def profile():
     """Fetching a protected resource using an OAuth 2 token.
     """
     print("token: ", session['oauth_token'])
@@ -104,6 +111,7 @@ def about():
 
     print(activities.json())
 
+
     badges = badge_summary(profile.json()["user"])
     [steps, total_steps] = step_summary(steps.json())
 
@@ -116,8 +124,7 @@ def about():
         "activities": activities.json()
 
     }
-    summary = jsonify(summary)
-    return redirect('http://localhost:3000')#summary
+    return summary
 
 def badge_summary(user_data):
     badges = []
@@ -131,7 +138,6 @@ def badge_summary(user_data):
 def step_summary(activity_data):
     steps = []
     total_steps = 0
-    calendar = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"]
     for day in activity_data['activities-steps']:
         steps.append(
             {
