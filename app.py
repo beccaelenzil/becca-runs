@@ -66,8 +66,6 @@ def login():
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
 
-    print("STATE:", state)
-
     return redirect(authorization_url)
 
 @app.route('/oauth_callback', methods=["GET"])
@@ -83,9 +81,6 @@ def oauth_callback():
         state=session['oauth_state'],
         )
 
-    print("fitbit", fitbit)
-    print("request.url = ", request.url)
-
     token = fitbit.fetch_token(app.config['TOKEN_URL'], 
         client_secret=app.config['CLIENT_SECRET'],
         authorization_response=request.url,
@@ -95,6 +90,12 @@ def oauth_callback():
     # in /profile.
     session['oauth_token'] = token
 
+    fitbit = OAuth2Session(app.config['CLIENT_ID'], token=token)
+
+    print('\n*********************')
+    print('fitbit:', fitbit)
+    print('*********************\n')
+
     return redirect("http://localhost:3000/about")
     #return redirect(url_for('.about'))
 
@@ -103,7 +104,6 @@ def oauth_callback():
 def about():
     """Fetching a protected resource using an OAuth 2 token.
     """
-    print("token: ", session['oauth_token'])
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session['oauth_token'])
     profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
     steps_url = 'https://api.fitbit.com/1/user/-/activities/steps/date/today/7d.json'
@@ -112,9 +112,6 @@ def about():
     profile = fitbit.get(profile_url)
     steps = fitbit.get(steps_url)
     activities = fitbit.get(activities_url)
-
-    print(activities.json())
-
 
     badges = badge_summary(profile.json()["user"])
     [steps, total_steps] = step_summary(steps.json())
