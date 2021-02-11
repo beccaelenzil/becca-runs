@@ -91,12 +91,18 @@ def oauth_callback():
     session['oauth_token'] = token
 
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=token)
+    profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
+    profile = fitbit.get(profile_url)
+    name = profile.json()["user"]["fullName"].split(' ')[0].lower()
 
-    print('\n*********************')
-    print('fitbit:', fitbit)
-    print('*********************\n')
+    # print('\n*********************')
+    # print('token:', token['user_id'])
+    # print('*********************\n')
 
-    return redirect("http://localhost:3000/about")
+
+    url = f"http://localhost:3000/about/{name}"
+
+    return redirect(url)
     #return redirect(url_for('.about'))
 
 
