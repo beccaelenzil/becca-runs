@@ -135,6 +135,21 @@ def about():
     #requests.get("http://localhost:3000/about")
     return summary
 
+@app.route("/current_user")
+def current_user():
+    token = session["oauth_token"]
+    fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session["oauth_token"])
+    profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
+    profile = fitbit.get(profile_url)
+    name = profile.json()["user"]["fullName"].split(' ')[0].lower()
+    return jsonify({'name': name, 'user_id': token['user_id']})
+
+@app.route("/logout")
+def logout():
+    session["oauth_token"] = ''
+    return {'name': ''}#redirect('http://localhost:3000/home')
+    
+
 def badge_summary(user_data):
     badges = []
     for badge in user_data["topBadges"]:
