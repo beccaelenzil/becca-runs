@@ -100,7 +100,7 @@ def oauth_callback():
     # print('*********************\n')
 
 
-    url = f"http://localhost:3000/about/{name}"
+    url = f"http://localhost:3000/loggedin/{name}"
 
     return redirect(url)
     #return redirect(url_for('.about'))
@@ -141,6 +141,9 @@ def current_user():
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session["oauth_token"])
     profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
     profile = fitbit.get(profile_url)
+    print('\n*********************')
+    print(profile.json())
+    print('*********************\n')
     name = profile.json()["user"]["fullName"].split(' ')[0].lower()
     return jsonify({'name': name, 'user_id': token['user_id']})
 
