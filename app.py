@@ -106,7 +106,7 @@ def oauth_callback():
     #return redirect(url_for('.about'))
 
 
-@app.route("/about", methods=["GET"])
+@app.route("/steps", methods=["GET"])
 def about():
     """Fetching a protected resource using an OAuth 2 token.
     """
@@ -133,7 +133,11 @@ def about():
     }
 
     #requests.get("http://localhost:3000/about")
-    return summary
+    print('\n*********************')
+    print(jsonify(steps))
+    print('*********************\n')
+
+    return jsonify(steps)
 
 @app.route("/current_user")
 def current_user():
@@ -162,15 +166,16 @@ def badge_summary(user_data):
             })
     return badges
 
+
 def step_summary(activity_data):
     steps = []
     total_steps = 0
     for day in activity_data['activities-steps']:
         steps.append(
             {
-                "day": calendar[datetime.strptime(day['dateTime'], "%Y-%m-%d").weekday()],
-                "date": day['dateTime'], 
-                "steps": int(day['value'])
+                #"day": calendar[datetime.strptime(day['dateTime'], "%Y-%m-%d").weekday()],
+                "x": day['dateTime'], #date
+                "y": int(day['value']) #steps
             }
         )
         total_steps += int(day['value'])
