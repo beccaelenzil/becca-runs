@@ -105,8 +105,8 @@ def oauth_callback():
     return redirect(url)
     #return redirect(url_for('.about'))
 
-@app.route("/steps/<month>", methods=["GET"])
-def calculate_steps(month):
+@app.route("/steps", methods=["GET"])
+def calculate_steps():
     # data = [
     #     {'x': 1, 'y': 8},
     #     {'x': 2, 'y': 5},
@@ -118,7 +118,7 @@ def calculate_steps(month):
     #     {'x': 8, 'y': 9},
     #     ]
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session['oauth_token'])
-    steps_url = f'https://api.fitbit.com/1/user/-/activities/steps/date/today/{month}m.json'
+    steps_url = f'https://api.fitbit.com/1/user/-/activities/steps/date/today/3m.json'
     steps = fitbit.get(steps_url)
     [steps, total_steps] = step_summary(steps.json())
 
@@ -166,15 +166,19 @@ def current_user():
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session["oauth_token"])
     profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
     profile = fitbit.get(profile_url)
-    print('\n*********************')
-    print(profile.json())
-    print('*********************\n')
+    # print('\n*********************')
+    # print(profile.json())
+    # print('*********************\n')
     name = profile.json()["user"]["fullName"].split(' ')[0].lower()
     return jsonify({'name': name, 'user_id': token['user_id']})
 
 @app.route("/logout")
 def logout():
     session["oauth_token"] = ''
+    session["oauth_state"] = ''
+    # print('\n*********************')
+    # print("session: ", session)
+    # print('*********************\n')
     return {'name': ''}#redirect('http://localhost:3000/home')
     
 
