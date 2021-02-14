@@ -105,14 +105,35 @@ def oauth_callback():
     return redirect(url)
     #return redirect(url_for('.about'))
 
+@app.route("/steps/<month>", methods=["GET"])
+def calculate_steps(month):
+    # data = [
+    #     {'x': 1, 'y': 8},
+    #     {'x': 2, 'y': 5},
+    #     {'x': 3, 'y': 4},
+    #     {'x': 4, 'y': 9},
+    #     {'x': 5, 'y': 2},
+    #     {'x': 6, 'y': 3},
+    #     {'x': 7, 'y': 2},
+    #     {'x': 8, 'y': 9},
+    #     ]
+    fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session['oauth_token'])
+    steps_url = f'https://api.fitbit.com/1/user/-/activities/steps/date/today/{month}m.json'
+    steps = fitbit.get(steps_url)
+    [steps, total_steps] = step_summary(steps.json())
 
-@app.route("/steps", methods=["GET"])
+    data = steps
+
+    return jsonify(data)
+
+
+@app.route("/summary", methods=["GET"])
 def about():
     """Fetching a protected resource using an OAuth 2 token.
     """
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session['oauth_token'])
     profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
-    steps_url = 'https://api.fitbit.com/1/user/-/activities/steps/date/today/7d.json'
+    steps_url = 'https://api.fitbit.com/1/user/-/activities/steps/date/today/1y.json'
     activities_url = 'https://api.fitbit.com/1/user/-/activities/date/today/1m.json'
     
     profile = fitbit.get(profile_url)
