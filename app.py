@@ -60,7 +60,7 @@ def login():
         )
 
     authorization_url, state = fitbit.authorization_url(
-        app.config['AUTHORIZATION_BASE_URL'],
+        app.config['AUTHORIZATION_BASE_URL'], prompt="login"
     )
     
     # State is used to prevent CSRF, keep this for later.
@@ -78,7 +78,7 @@ def oauth_callback():
 
     fitbit = OAuth2Session(app.config['CLIENT_ID'],
         redirect_uri=app.config['CALLBACK_URL'],  
-        state=session['oauth_state'],
+        state=session['oauth_state']
         )
 
     token = fitbit.fetch_token(app.config['TOKEN_URL'], 
