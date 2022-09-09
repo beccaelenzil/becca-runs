@@ -6,7 +6,7 @@ from flask import Flask, request, redirect, session, url_for
 from flask.json import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from marshmallow_sqlalchemy import ModelSchema
+#from marshmallow_sqlalchemy import ModelSchema
 from flask_cors import CORS
 import os
 from .config import *
@@ -29,16 +29,16 @@ CORS(app)
 
 scope = app.config["SCOPE"]
 
-class User(db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    social_id = db.Column(db.String(64), nullable=False, unique=True)
-    nickname = db.Column(db.String(64), nullable=False)
-    email = db.Column(db.String(64), nullable=True)
+# class User(db.Model):
+#     __tablename__ = 'users'
+#     id = db.Column(db.Integer, primary_key=True)
+#     social_id = db.Column(db.String(64), nullable=False, unique=True)
+#     nickname = db.Column(db.String(64), nullable=False)
+#     email = db.Column(db.String(64), nullable=True)
 
-class UserSchema(ModelSchema):
-     class Meta:
-        model = User
+# class UserSchema(ModelSchema):
+#      class Meta:
+#         model = User
 
 @app.route("/hello", methods=['GET', 'POST'])
 def users():
@@ -100,9 +100,9 @@ def oauth_callback():
     # print('*********************\n')
 
 
-    url = f"http://localhost:3000/loggedin/{name}"
+    loggedin_url = f"http://localhost:3000/loggedin/{name}"
 
-    return redirect(url)
+    return redirect(loggedin_url)
     #return redirect(url_for('.about'))
 
 @app.route("/steps", methods=["GET"])
@@ -134,7 +134,7 @@ def about():
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session['oauth_token'])
     profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
     steps_url = 'https://api.fitbit.com/1/user/-/activities/steps/date/today/1y.json'
-    activities_url = 'https://api.fitbit.com/1/user/-/activities/date/today/1m.json'
+    activities_url = 'https://api.fitbit.com/1/user/-/activities/tracker/distance/date/today/3m.json'
     
     profile = fitbit.get(profile_url)
     steps = fitbit.get(steps_url)
@@ -153,12 +153,13 @@ def about():
 
     }
 
-    #requests.get("http://localhost:3000/about")
     print('\n*********************')
-    print(jsonify(steps))
+    print(activities)
     print('*********************\n')
 
-    return jsonify(steps)
+    #requests.get("http://localhost:3000/about")
+
+    return summary #activities.json()
 
 @app.route("/current_user")
 def current_user():
@@ -176,9 +177,6 @@ def current_user():
 def logout():
     session["oauth_token"] = ''
     session["oauth_state"] = ''
-    # print('\n*********************')
-    # print("session: ", session)
-    # print('*********************\n')
     return {'name': ''}#redirect('http://localhost:3000/home')
     
 
