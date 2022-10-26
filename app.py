@@ -29,17 +29,6 @@ CORS(app)
 
 scope = app.config["SCOPE"]
 
-# class User(db.Model):
-#     __tablename__ = 'users'
-#     id = db.Column(db.Integer, primary_key=True)
-#     social_id = db.Column(db.String(64), nullable=False, unique=True)
-#     nickname = db.Column(db.String(64), nullable=False)
-#     email = db.Column(db.String(64), nullable=True)
-
-# class UserSchema(ModelSchema):
-#      class Meta:
-#         model = User
-
 @app.route("/hello", methods=['GET', 'POST'])
 def users():
     return "hello"
@@ -95,10 +84,6 @@ def oauth_callback():
     profile = fitbit.get(profile_url)
     name = profile.json()["user"]["fullName"].split(' ')[0].lower()
 
-    # print('\n*********************')
-    # print('token:', token['user_id'])
-    # print('*********************\n')
-
 
     loggedin_url = f"http://localhost:3000/loggedin/{name}"
 
@@ -107,16 +92,6 @@ def oauth_callback():
 
 @app.route("/steps", methods=["GET"])
 def calculate_steps():
-    # data = [
-    #     {'x': 1, 'y': 8},
-    #     {'x': 2, 'y': 5},
-    #     {'x': 3, 'y': 4},
-    #     {'x': 4, 'y': 9},
-    #     {'x': 5, 'y': 2},
-    #     {'x': 6, 'y': 3},
-    #     {'x': 7, 'y': 2},
-    #     {'x': 8, 'y': 9},
-    #     ]
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session['oauth_token'])
     steps_url = f'https://api.fitbit.com/1/user/-/activities/steps/date/today/3m.json'
     steps = fitbit.get(steps_url)
@@ -153,12 +128,6 @@ def about():
 
     }
 
-    print('\n*********************')
-    print(activities)
-    print('*********************\n')
-
-    #requests.get("http://localhost:3000/about")
-
     return summary #activities.json()
 
 @app.route("/current_user")
@@ -167,9 +136,6 @@ def current_user():
     fitbit = OAuth2Session(app.config['CLIENT_ID'], token=session["oauth_token"])
     profile_url = 'https://api.fitbit.com/1/user/-/profile.json'
     profile = fitbit.get(profile_url)
-    # print('\n*********************')
-    # print(profile.json())
-    # print('*********************\n')
     name = profile.json()["user"]["fullName"].split(' ')[0].lower()
     return jsonify({'name': name, 'user_id': token['user_id']})
 
